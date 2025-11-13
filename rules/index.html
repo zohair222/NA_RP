@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA ROLEPLAY - OFFICIAL RULES</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght%40400;700;900&family=Orbitron:wght%40400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS START */
+        :root {
+            --primary-neon: #00ffff; /* Cyan/Neon Blue */
+            --secondary-accent: #ff8c00; /* Deep Orange/Amber */
+            --background-dark: #0a0a1a; /* Dark Space Blue */
+            --card-bg: rgba(18, 18, 40, 0.9);
+            --text-light: #e0f7fa;
+            --danger-color: #ff3366; /* Neon Red */
+            --success-color: #33ff99; /* Neon Green */
+            --info-color: var(--primary-neon);
+        }
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--background-dark);
+            color: var(--text-light);
+            line-height: 1.7;
+            background-image: none;
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            overflow-x: hidden;
+            display: none; /* Hidden until loaded by JS */
+            direction: ltr; /* Ensure LTR for all text flow */
+        }
+
+        /* --- Global Neon Glow Effect --- */
+        .neon-glow {
+            text-shadow: 0 0 5px var(--primary-neon), 0 0 10px var(--primary-neon);
+        }
+        
+        /* --- Loading Screen --- */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--background-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .loader-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            color: var(--primary-neon);
+            letter-spacing: 5px;
+            margin-bottom: 30px;
+            animation: text-flicker 1.5s infinite alternate;
+        }
+
+        .loader-spinner {
+            width: 80px;
+            height: 80px;
+            border: 5px solid rgba(0, 255, 255, 0.2);
+            border-top: 5px solid var(--primary-neon);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 10px var(--primary-neon), 0 0 20px var(--primary-neon);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes text-flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+                text-shadow: 
+                    0 0 4px var(--primary-neon), 
+                    0 0 11px var(--primary-neon), 
+                    0 0 19px var(--primary-neon), 
+                    0 0 40px rgba(0, 255, 255, 0.4);
+            }
+            20%, 24%, 55% {        
+                text-shadow: none;
+            }
+        }
+        
+        /* --- Header & Navigation --- */
+        header {
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid var(--primary-neon);
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8em;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: var(--text-light);
+            text-shadow: 0 0 10px var(--primary-neon);
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            margin-right: 20px;
+            font-size: 1.05em;
+            font-weight: 700;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-neon);
+            text-shadow: 0 0 8px var(--primary-neon);
+            border-bottom: 2px solid var(--primary-neon);
+        }
+
+        /* --- Main Layout & Sections --- */
+        main {
+            padding: 30px 5%;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .rules-section {
+            padding: 50px 0;
+        }
+
+        .section-title {
+            font-size: 2.8em;
+            color: var(--secondary-accent);
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 900;
+            padding: 10px 0;
+            border-bottom: 4px solid var(--secondary-accent);
+            text-shadow: 0 0 12px var(--secondary-accent);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .section-title span {
+            color: var(--primary-neon);
+            font-size: 0.7em;
+            font-weight: 400;
+        }
+
+        /* --- Hero Section (Landing) - Video Container Logic --- */
+        #hero {
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative; /* Needed for absolute positioning of video */
+            overflow: hidden;
+            border-radius: 20px;
+            margin-bottom: 50px;
+            padding: 0; /* Remove inner padding */
+            background: var(--background-dark); 
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Behind content */
+            pointer-events: none; /* Allows clicks through to elements underneath */
+        }
+
+        .video-container iframe {
+            /* Make video cover the entire area, scaled and centered */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            opacity: 0.6; /* Dim the video slightly */
+            filter: brightness(0.7);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2; /* On top of video */
+            padding: 20px;
+            background: rgba(10, 10, 26, 0.6); /* Semi-transparent overlay for readability */
+            border-radius: 15px;
+            max-width: 80%;
+        }
+
+        #hero h1 {
+            font-size: 4.5em;
+            color: var(--secondary-accent);
+            margin-bottom: 15px;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 20px var(--secondary-accent);
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            color: var(--text-light);
+        }
+
+        .cta-button {
+            background-color: var(--primary-neon);
+            color: var(--background-dark);
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: 900;
+            transition: all 0.3s ease;
+            border: 3px solid var(--primary-neon);
+            box-shadow: 0 0 15px var(--primary-neon);
+        }
+
+        .cta-button:hover {
+            background-color: transparent;
+            color: var(--primary-neon);
+            transform: scale(1.05);
+            box-shadow: 0 0 25px var(--primary-neon);
+        }
+
+        /* --- Rule Cards Grid --- */
+        .rule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+        
+        .faction-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        /* --- LTR STYLES --- */
+        .rule-card, .faction-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s;
+            position: relative;
+            /* LTR Layout: Border on the left */
+            border-left: 5px solid var(--primary-neon);
+            border-right: none;
+            direction: ltr; 
+        }
+
+        .rule-card:hover, .faction-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 255, 255, 0.4);
+            border-left-color: var(--secondary-accent);
+        }
+
+        /* 1. Rule Number Badge (01) - Positioned on the LEFT */
+        .rule-card::before {
+            content: attr(data-rule-number);
+            position: absolute;
+            top: 15px;
+            left: 15px; /* Moved to left */
+            right: auto;
+            background-color: var(--primary-neon);
+            color: var(--background-dark);
+            font-size: 1.3em;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 8px;
+            line-height: 1;
+            z-index: 10;
+            font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 10px var(--primary-neon);
+        }
+
+        /* 2. Main Rule Title (e.g., Powergaming [PG]) */
+        .rule-card h3, .faction-card h3 {
+            color: var(--secondary-accent);
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            font-family: 'Orbitron', sans-serif;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+            text-align: left; 
+            padding-left: 80px; /* Space for the rule number */
+        }
+        
+        /* 3. List Item structure (Pure LTR) */
+        .rule-card ul, .rule-card ol, .faction-card ol, .faction-card ul {
+            list-style: none;
+            padding-left: 0;
+            padding-right: 0;
+            direction: ltr; /* Parent list direction is LTR */
+        }
+
+        .rule-card li, .faction-card li {
+            margin-bottom: 12px;
+            padding: 5px 0;
+            position: relative;
+            direction: ltr; 
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start; /* Start from the left */
+            text-align: left; /* Text aligns left */
+            font-size: 1.05em; /* Adjusted font size for readability */
+        }
+
+        /* 4. Icon Container ([DENY] part) - Positioned on the LEFT */
+        .icon-container {
+            flex-shrink: 0;
+            direction: ltr;
+            margin-right: 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+
+        /* 5. Rule Text part (Tet9awa...) - Flowing LTR */
+        .rule-text {
+            flex-grow: 1;
+            direction: ltr;
+            text-align: left;
+            padding-right: 10px;
+        }
+        
+        /* General cleanup for ordered lists */
+        .rule-card ol li::before, .faction-card ol li::before {
+            display: none; 
+        }
+        
+        .faction-card h4 {
+            color: var(--text-light);
+            font-size: 1.2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+            direction: ltr; 
+            text-align: left;
+        }
+        /* --- END LTR STYLES --- */
+
+
+        /* Symbol Replacement (Non-Emoji Icons) */
+        .accept { 
+            color: var(--success-color); 
+            text-shadow: 0 0 6px var(--success-color);
+        } 
+        .deny { 
+            color: var(--danger-color); 
+            text-shadow: 0 0 6px var(--danger-color); 
+        } 
+        .info { 
+            color: var(--info-color); 
+            text-shadow: 0 0 6px var(--info-color); 
+        } 
+        .penalty { 
+            color: #ff00ff; /* Purple Neon */
+            text-shadow: 0 0 6px #ff00ff; 
+        }
+        .fatal { 
+            color: #990000; /* Dark Red */
+            text-shadow: 0 0 6px #990000; 
+        }
+        .clock {
+            color: var(--secondary-accent);
+            text-shadow: 0 0 6px var(--secondary-accent);
+        }
+
+        /* Faction Card Specific Styling */
+        .police { border-left-color: #2196F3; } /* Blue */
+        .ems { border-left-color: #FF5722; } /* Orange */
+        .gang { border-left-color: #9C27B0; } /* Purple */
+
+        .police h3 { color: #2196F3; text-shadow: 0 0 10px #2196F3; }
+        .ems h3 { color: #FF5722; text-shadow: 0 0 10px #FF5722; }
+        .gang h3 { color: #9C27B0; text-shadow: 0 0 10px #9C27B0; }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 30px 5%;
+            background-color: rgba(0, 0, 0, 0.9);
+            border-top: 3px solid var(--primary-neon);
+            color: var(--primary-neon);
+            font-size: 1em;
+            margin-top: 40px;
+        }
+
+        /* --- Animations & Utilities --- */
+        .hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        hr {
+            border: none;
+            height: 3px;
+            background: linear-gradient(to right, rgba(0, 0, 0, 0), var(--primary-neon), rgba(0, 0, 0, 0));
+            margin: 50px 0;
+            box-shadow: 0 0 10px var(--primary-neon);
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                position: static;
+            }
+            nav {
+                margin-top: 15px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .nav-link {
+                margin: 5px 8px;
+            }
+            #hero h1 {
+                font-size: 3em;
+            }
+            .section-title {
+                font-size: 2em;
+            }
+            .rule-card, .faction-card {
+                padding: 20px;
+            }
+            .rule-card::before {
+                font-size: 1.1em;
+                padding: 3px 8px;
+            }
+        }
+        /* CSS END */
+    </style>
+</head>
+<body>
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="loader-text neon-glow">NASA ROLEPLAY</div>
+        <div class="loader-spinner"></div>
+    </div>
+    <!-- END LOADING SCREEN -->
+
+    <header id="header">
+        <div class="logo-container">
+            <span class="logo-text neon-glow">NASA ROLEPLAY</span>
+        </div>
+        <nav>
+            <a href="#rules-rp" class="nav-link">RP RULES</a>
+            <a href="#general-rules" class="nav-link">GENERAL DIRECTIVES</a>
+            <a href="#faction-rules" class="nav-link">FACTION RULES</a>
+        </nav>
+    </header>
+
+    <main id="main-content" class="hidden">
+        <section id="hero">
+            <!-- YouTube Video Container (Fixed to ensure silent autoplay and loop) -->
+            <div class="video-container">
+                <!-- 
+                    IMPORTANT: The YouTube URL has been simplified and modified to ensure Autoplay/Mute/Loop 
+                    works correctly as a background element. 
+                    Video ID used here: j_r2x96d_W4 (Placeholder for Space video).
+                    
+                    Parameters used:
+                    - autoplay=1: Start automatically
+                    - mute=1: Must be muted for autoplay to work in modern browsers.
+                    - loop=1: Repeats the video.
+                    - playlist=j_r2x96d_W4: Required parameter when using 'loop=1'
+                    - controls=0: Hides YouTube controls.
+                -->
+                <div class="video-background">
+    <video autoplay muted loop playsinline>
+        <source src="video/video.mp4" type="video/mp4">
+        متصفحك لا يدعم تشغيل الفيديو.
+    </video>
+</div>
+
+            
+            <!-- Hero Content Overlay -->
+            <div class="hero-content">
+                <h1 class="neon-glow">WELCOME TO THE PLANET OF EXPLORATION</h1>
+                <p class="subtitle">Your commitment to the <span class="neon-glow">RULES 0x01</span> ensures a fun and fair gaming experience for everyone.</p>
+                <a href="#rules-rp" class="cta-button">START REVIEW >></a>
+            </div>
+        </section>
+
+        <section id="rules-rp" class="rules-section">
+            <h2 class="section-title">RP RULES <span class="neon-glow">// ENGAGEMENT_RULES</span></h2>
+            <div class="rule-grid">
+                
+                <div class="rule-card hidden" data-rule-number="01">
+                    <h3>Powergaming <span class="deny">[PG]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Tet9awa 3al character mte3ek</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Tetkalam o enti deya5</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">T9oum tejri w enti mazel ki fay9ek el EMS</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ysirlek accident w t9oum keyeno masar chy</span></li>
+                    </ul>
+                </div>
+                
+                <div class="rule-card hidden" data-rule-number="02">
+                    <h3>Metagaming <span class="deny">[MG]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Testa3mel information hors rp.</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Stream Snipe</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Testa3mel informations 7kelek aliha chkoun f discord.</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">T3ayet lwe7ed b 2esmou w howa 3omrou ma9alek 2esmou.</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="03">
+                    <h3>Value of Life <span class="accept">[VOL]</span></h3>
+                    <ul>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">T5af 3al character mte3ek kima f denya.</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Chkoun jbed alik sle7 o nti jeyebha mat5afech</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="04">
+                    <h3>Fail Drive <span class="deny">[FD]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Tetla3 fi jbal b karhba/moto moch OFF ROAD</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Tsou9 karhba o fiha 3ajla man9ouba</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="05">
+                    <h3>New Life Rule <span class="info">[NLR]</span></h3>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">kan do5et ou fay9ek ems Tensa e5er scene saretlek &lt;15mn&gt;</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">do5et ou respawnit fi sbitar tansa nharr kamel</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">ki yebda 7akem ma7thaik oila ems ma3adekech l7a9 trespawni fi sbitar</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="06">
+                    <h3>Combat Loging / Storing <span class="deny">[CL/CS]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">**Combat Loging:** To5rej AFK/ALT F4 o enti f scene</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">**Combat Storing:** Temchi t5abi karhabtek fel garage wa9teli fama chkoun khalet 3lik tebda hareb menou</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="07">
+                    <h3>Copbait <span class="deny">[CB]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">temchy 9odaim lmarkezz ttroli</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="08">
+                    <h3>VDM (Vehicle Deathmatch) <span class="deny">[VDM]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ki to9tel 3abd bel karhba w tabda 9asedha</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="09">
+                    <h3>RDM (Random Deathmatch) <span class="deny">[RDM]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">To9tel 3abd ma8ir sbab</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="10">
+                    <h3>/ME <span class="info">[ACTION]</span></h3>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">sentiment liée bil personnage mte3ek bch tousef 7altek fel scene eli enti feha</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="11">
+                    <h3>/DO <span class="info">[EFFECT]</span></h3>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">action ma tnajamch ta3mal'ha b animation fel game</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="12">
+                    <h3>SafeZone <span class="deny">[S.Z]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Fel blayes hedhom mamnou3 3lik, Takhtef, Tbraqui, Ta3mel 3arka wala tadhreb 3abd, Tesra9 karhba, Tohrob min scene</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">**Zones:** Garage centrale - Sbitar -balayess lfarem mta3 chrikait -mecano -cardealer</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="M.R.">
+                    <h3>/ME & EMS <span class="info">[MEDICAL_LOG]</span></h3>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">ki tabda meyet w yjik el EMS lezmek testa3mel /me w tekteb kifeh mot w win el dharba bech howa ya3ref kifeh ymacheha el scene</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">interdit tekdheb fel /me 3al ems</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">interdit testa3mel el /me /do bech ta7ki m3a chkon</span></li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+        
+        <hr>
+
+        <section id="general-rules" class="rules-section">
+            <h2 class="section-title">GLOBAL DIRECTIVES <span class="neon-glow">// GLOBAL_DIRECTIVES</span></h2>
+            <div class="rule-grid">
+
+                <div class="rule-card hidden" data-rule-number="G1">
+                    <h3>General Rules (1-7)</h3>
+                    <ul>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">lesm lezem ykoun esm We9i3i</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">No troll</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Interdit tesra9 karhabt ems</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">Lezem l micro mte3ek ykoun mrigel ou soutek watha7</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Interdit testa3mel ay naw3 mte3 glitch</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ma 3andekch l7a9 tcarry we7ed w tsou9 bih</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Interdit bch ta5taf/tethrab/to9tel/tebraki EMS wala to2mrou bch yrevaivi ay we7ed</span></li>
+                    </ul>
+                </div>
+                
+                <div class="rule-card hidden" data-rule-number="G2">
+                    <h3>General Rules (8-13)</h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ma tnajamch taaref aabd ki yebda lebes Mask, la bl sout la bl bdan la lebsa la tatooage</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ki tebda meyet ma tnajamch ta7ki</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ma 3andekch l7a9 tchouf esm player mil F10/F2/TS</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Interdit tod5ol il channel fel radio mouch tab3etek 7ata kan tala3tou bel rp</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">L7yout matsama3ech</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Tet7amel mas2oulitek ki to93ed AFK, ken sar9oulek 7aja wala 5atfouk</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="BAN">
+                    <h3>PENALTY SYSTEM <span class="penalty">// PENALTY_SSTM</span></h3>
+                    <ul>
+                        <li><span class="icon-container penalty">[BAN]</span> <span class="rule-text">1- 3 Strike = ban 24h</span></li>
+                        <li><span class="icon-container penalty">[BAN]</span> <span class="rule-text">2- Ban 24h</span></li>
+                        <li><span class="icon-container penalty">[BAN]</span> <span class="rule-text">3- Ban 3-7 days</span></li>
+                        <li><span class="icon-container fatal">[FATAL]</span> <span class="rule-text">4- Perma Ban ( glitch- cheating - t7awel tdhor ay concept mta3 server )</span></li>
+                        <li><span class="icon-container clock">[CLOCK]</span> <span class="rule-text">5- 3la Kol fail Ban 12h exemple : 3malt RDM - ValueOfLife - metagaming ==> 36h</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="G.T.">
+                    <h3>Green Time <span class="info">[PEACE_MODE]</span></h3>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Green Time = ki yhbto hakem matnjm taml hat chy ilgal exp mdina kmla twali green zone lin hakem yhbt green time off</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Green Time yahbat max 1h bach yofa w ken ki ybda fama recru yahbat</span></li>
+                    </ul>
+                </div>
+
+                <div class="rule-card hidden" data-rule-number="R.M.">
+                    <h3>MISC RP DIRECTIVES <span class="deny">[MISC_DENY]</span></h3>
+                    <ul>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">**WIN RP:** ki tebda t7awel bch terba7 la scene b ay tari9a</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">**Disrespect:** Tseb caractare 3adi, ama l Kofr w Saben chajara l 3a2iliya 3laha ban</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">**EVENTS:** Les events rahom kolhom HORS RP w ay scene RP bch tsir to3tabar cancelled</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">**Fear RP:** Ki tesma3 RP/HORSRP eli fama chkoun bch ya3malek Mort RP, twali ma3adech todkhol l serveur Walla to93od dima mcampi fi Safe Zone</span></li>
+                        <li><span class="icon-container penalty">[BAN]</span> <span class="rule-text">ay whd bach yseb godem tofla wala my9drhach ykl ban 7days ahsb o5tk f blasatha</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">**GC Mask:** GC andek ha9 tlbs fih mask ama Bch tamel fih illégal ban</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="faction-rules" class="rules-section">
+            <h2 class="section-title">FACTION RULES <span class="neon-glow">// FACTION_RULES</span></h2>
+            <div class="faction-grid">
+                <div class="faction-card police hidden">
+                    <h3>POLICE <span class="accept">[HAKEM]</span></h3>
+                    <ul>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">i7tiarm lmawten mahma ken ch5asityhi</span></li>
+                        <li><span class="icon-container fatal">[FATAL]</span> <span class="rule-text">Mouaten ady 5 9athaya kbar tsirlou mort rp .</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">Ay hakem wala 7aras yelzmek tetsaref m3a mouatnine b tari9a professional manetha kif mouwaten ye3tadie 3lik b chatem tetsaref m3ah bel 9anoun w yekhedh 3ou9oubtou bel 9anoun</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">kif tsir ser9a robbery jewelry wala banka o yebda mandhomech rahina 9oltelhom wariwni rahina w mawaawkch andek el 7a9 el tkartch alihom toull.</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">ma3andekch l7a9 testamel sle7ek w enty off duty</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ma3andekch el 7a9 ka 7akem tbi3 sle7 wala ta3tih el had feha</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">tasma3 klem illy gradee 3lik</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Fi 7alet taweree 3andkom l7a9 tfarksou ayy mouwaten</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">kif tebdew fi poursuit m3a m3a chkoun to9e3dou fel poursuite menghir 7ata kartoucha ken houma kartchou alikom direct tkartchou.</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">ha ken dkhaltou fi poursuit w mojrem bkarehba exclusive andkom l7a9 tafel9oulo la3jeli</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Kraheb el hakem wel 7aras mamnou3 yetser9ou medemhom 9odem markez wala fi green zone.</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">bch tozedmou ala houma minimum yelzemkom 8 hakem</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">(braquage/khatef abed/shop/jewelry) maximum 8 hakem f scène</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">fi banka maximum 10 hakem f scene</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">t9dr hytk w hyet rahina w criminel 3ndo 2 chorot ma hakem f kol scène faha hostage</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">tat7trmo b3dhkom w kol a3la grade Howa ly yati order ken whd m7trmch grade yatard m hakem</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">radio tst3mlo ken ki td5l l server Bach t3ml duty mt3k w info mach thky fih f hkytk enty w shbk</span></li>
+                        <li><span class="icon-container penalty">[BAN]</span> <span class="rule-text">Mandkch 7a9 tkon dirty cop (ban 7 days w to5rej mel 7akem)</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">ma3andekch l7a9 tmenotty ma8ir mayhez ydih w ma8ir sbab</span></li>
+                    </ul>
+                    <h4>Raid & Miscellaneous</h4>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">-Chop chop lezem 3 7akem</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Ayh oi7ed yal9ah ll7akem fi blasa Machbouha kima balasa mata3 bi3an dorg oila fel chop chop oila fy balasa Machbouha 3andou la7a9 la7kem yfatchek</span></li>
+                        <li><span class="icon-container penalty">[BAN]</span> <span class="rule-text">Ayh oi7ed yemchy oila yot5ol llmarkezz ye7tarem rou7ou kima fedenya ou y9ader la3wen ou mayjibhaich ja3boun ou may5afech ou ayh oi7ed bech ijibha may5afech Mel 7akem yebdaw 3 bajnbou ou Hoi yessb 3liha ban 10h</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Bus robbery lzm 5 Hakem bch tamlha</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Bato Lzm 8 Hakem bach tamlha</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Bach tsrag dhhab lzm 6 Hakem W rahina b3d mtfghity ma botet Tatfwdh ma hakem</span></li>
+                    </ul>
+                </div>
+
+                <div class="faction-card ems hidden">
+                    <h3>EMS <span class="accept">[ISAF]</span></h3>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Ems kif taebda andek machekel m3a 3abed w jek signal w l9it l3abed adhek t9awmou w bessif alik macheklk tffodhha w enty off duty.</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">mamnou3 tetbraka wala yhezouk rahina w enty on duty.</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ems mamnou3 alik tetjaltem ala labed w enty on duty khater taref elhouma maynejmouch yamloulek chay</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ma3andekchi l ha9 tbi3 les medkits w les bandages</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">Kif EMS yfy9k yelzem tkamel m3ah scene kemla</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">ki ijik l EMS l maken l7adeth lezmek ta3mel elly i9oulhoulek l EMS</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">l EMS 3andou l7a9 ikoun dirty (interdit the5ou sle7 wlla tod5el fi gang) w fel off duty inajem yete5taf</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Karhaba w helicopter mta3 ems mamnou3 tetsra9 jemla (strike) .</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ems mandouch el 7a9 yekhdem o howa mouch lebes labstou w yekhdem ken bkarhabtou.</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">kif wehed ymout bel kartouch ynajem yfai9oh EMS par contre kif ybda mayet ma7rou9 mayfikech</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">kan yti7 damek lel 0 blood yfi9 b3amlaya tklf 5 mlayan hata head</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">ay whd dy5 taml mah scene rp mali toseel tselo kifh met yktblk b /me bach tarf scène kifh tmachaha</span></li>
+                    </ul>
+                </div>
+
+                <div class="faction-card gang hidden">
+                    <h3>GANG <span class="deny">[CRIME]</span></h3>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">max 3 otage fi robbery bank</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Matnajem ta3mel robbery de bank ken maykoun fama +8 hakem</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Kif tkamel el robbery ma3andkchi l ha9 thez el rahina</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Chouk yet7at ken fi barage w ordre min 3and commandant</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">INTERDIT Fake hostage</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">Fi Négociation talabat tkoun ma39oula w lezmik tkhaf 3la 7yetek</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">ma3andekch l7a9 ta3mel poursuit b kraheb el donation</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">kif ta5taf hakem lezm ikounou fama 5 fil bled w ma3andkchi l ha9 tekhou sleh mte3ou.</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ma3andkchi l ha9 tforci 3al hakem w t9oul andi rahina matansech zeda yelzem tkhaf ale hyetek exp:(t9oul lel hakem bech na3tik rahina tjibli la3wen el kol lahne ...)</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">Ma3andekech l7a9 le ta5tef le tebraki mouwaten ki yabda on duty (fi ma9ar l3amal wlla fi karehba mta3 l 5edma)</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">interdit ta3mel 7aja illegal a9al men 2 police fel bled w lezem eli bech ya3mlou illegal a9al mel 7akem b 1</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">interdit testa3mel helico fi robbery bank</span></li>
+                        <li><span class="icon-container deny">[DENY]</span> <span class="rule-text">ma3andekch l7a9 tesre9 kraheb el hakem wel ems</span></li>
+                        <li><span class="icon-container accept">[ACCEPT]</span> <span class="rule-text">fi scene mta3 robbery obligé 3lik ta3mel negociation m3a l7akem</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">3ndk ha9 tfy9 ken shbk f grandma</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Max f Scene Bank 6 / Golry 4</span></li>
+                    </ul>
+                    <h4>Raid & Miscellaneous</h4>
+                    <ul>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Ki yosdom el Hakem ala blasa: -ki yosdom el hakem aaalik lel les zones mteekom que ce soit houma walla blasa eli feha hajet illégale: 7awel dima tohrob ken fou9ek haja mamnou3a</span></li>
+                        <li><span class="icon-container info">[INFO]</span> <span class="rule-text">Ki tosdom aalik Gang walla ay faction okhra illégale: 7awlou dima tabdew scene bel 7dith matebdewhech toul bel kartouche w ken sar kartouche inti 7ot bech todhrob bel kartouche</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>NASA Roleplay RULES &copy; 2024 | DESIGNED FOR SPACE RP</p>
+    </footer>
+
+    <script>
+        // JAVASCRIPT START
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const mainContent = document.getElementById('main-content');
+            const sections = document.querySelectorAll('.rules-section, .rule-card, .faction-card, footer');
+            
+            // Function to handle video loading check (optional but helps debug)
+            function checkVideoStatus() {
+                const iframe = document.querySelector('.video-container iframe');
+                if (iframe) {
+                    iframe.onload = () => {
+                        console.log('YouTube iframe loaded successfully.');
+                    };
+                    iframe.onerror = (e) => {
+                        console.error('YouTube iframe failed to load.', e);
+                        // Fallback: If iframe fails, set a static background color/image
+                        document.getElementById('hero').style.backgroundImage = 'linear-gradient(rgba(10, 10, 26, 0.9), rgba(10, 10, 26, 0.9)), url(https://placehold.co/1920x1080/0A0A1A/00FFFF?text=SPACE+BACKGROUND)';
+                        document.getElementById('hero').style.backgroundSize = 'cover';
+                    };
+                }
+            }
+            // checkVideoStatus(); // Uncomment to debug video loading
+
+            // 1. Initial Loading Screen Sequence
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                
+                // Show main content and body after fade out
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    document.body.style.display = 'block';
+                    mainContent.classList.add('visible');
+                    
+                    // Trigger scroll observer after content is fully visible
+                    setupIntersectionObserver();
+                }, 800); // Wait for fade out transition (0.8s)
+            }, 2000); // Show loader for 2 seconds
+
+            // 2. Smooth Scrolling for Navigation
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // 3. Observer for Fade-in Effect on Scroll (Animation)
+            function setupIntersectionObserver() {
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '0px',
+                    threshold: 0.1 
+                };
+
+                const observer = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            entry.target.classList.remove('hidden');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, observerOptions);
+
+                // Apply animation classes and observe
+                sections.forEach(el => {
+                    if (!el.classList.contains('visible')) {
+                        el.classList.add('hidden');
+                    }
+                    observer.observe(el);
+                });
+            }
+            
+            // Note: setupIntersectionObserver is called after the loading screen is hidden.
+
+        });
+        // JAVASCRIPT END
+    </script>
+</body>
+</html>
