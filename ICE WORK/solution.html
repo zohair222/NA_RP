@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icefield VIP Predictor - Secure Portal</title>
+    <link rel="shortcut icon" href="https://games.upgaming.com/games/icefield/assets/ice-break/ice-break-5.png?version=1747667849930">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top center, #111827 0%, #030712 100%);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        /* Dark game-board frame matching {401162EB-9F0B-46C2-A730-97C47F2D4A65}.png */
+        .game-board-bg {
+            background-color: #1a1a1a;
+            border: 3px solid #2e2e2e;
+            box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        /* Glass panel container styling */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        /* VIP Gold Glowing Border */
+        .vip-gold-glow {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+        /* Style for the exact Loss Data display shown in image_38aa41.png */
+        .loss-data-hud {
+            background-color: #2D3748; /* Dark slate gray-blue background */
+            font-family: monospace;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-full flex flex-col justify-between selection:bg-blue-500/30 selection:text-blue-200">
+
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+    <div id="loginGate" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-hidden">
+            <!-- Decorative Light Rings -->
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-sky-500/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl"></div>
+
+            <div class="text-center mb-8">
+                <div class="mx-auto w-16 h-16 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/25 mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-black bg-gradient-to-r from-sky-400 to-blue-300 bg-clip-text text-transparent">VIP Solution Access</h2>
+                <p class="text-xs text-slate-400 mt-1.5 font-medium">Authentication required to load decrypting algorithm</p>
+            </div>
+
+            <!-- Login Status/Error Notice inside Card -->
+            <div id="loginErrorMsg" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 font-semibold flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                <span id="loginErrorText">Credentials invalid. Please try again.</span>
+            </div>
+
+            <!-- Form Inputs -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Username</label>
+                    <input type="text" id="loginUser" placeholder="e.g., ZETSU" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition font-medium">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Password</label>
+                    <input type="password" id="loginPass" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition font-medium">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">VIP License Key</label>
+                    <input type="text" id="loginLicense" placeholder="e.g., ZETSU-VIP-100" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition font-mono tracking-wider font-semibold">
+                </div>
+
+                <button onclick="handleLoginSubmit()" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold py-3.5 rounded-xl text-xs uppercase tracking-widest transition duration-200 shadow-lg shadow-sky-500/20 active:scale-[0.98] mt-2">
+                    Submit Credentials
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+    <div id="loaderScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 bg-slate-950 hidden">
+        <div class="text-center max-w-sm w-full">
+            <!-- Premium Loading Spinner -->
+            <div class="relative w-20 h-20 mx-auto mb-6">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-800/80"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-t-amber-500 border-r-amber-500 animate-spin"></div>
+                <div class="absolute inset-3 rounded-full border-4 border-sky-500/20 border-b-sky-500 animate-reverse-spin"></div>
+            </div>
+
+            <h4 class="text-md font-extrabold uppercase tracking-widest text-slate-100">Bypassing Donbet Seeds</h4>
+            
+            <!-- Dynamic Console/Console Logs Terminal style -->
+            <div class="bg-black/50 border border-white/5 rounded-2xl p-4 mt-6 text-left font-mono text-[10px] space-y-2 h-28 overflow-hidden">
+                <p id="logLine1" class="text-slate-500">&gt; Connecting to node...</p>
+                <p id="logLine2" class="text-slate-500">&gt; Initializing server request...</p>
+                <p id="logLine3" class="text-slate-500">&gt; Checking custom token authority...</p>
+            </div>
+
+            <p class="text-xs text-amber-500/80 font-semibold animate-pulse mt-4">Authorized VIP License active...</p>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+    <div id="appContainer" class="opacity-0 transition-opacity duration-700 hidden flex-grow flex flex-col justify-between">
+        <!-- Top Header Navigation -->
+        <header class="glass-panel sticky top-0 z-40 px-6 py-4 border-b border-white/10">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-gradient-to-tr from-sky-500 to-blue-600 rounded-xl shadow-lg shadow-sky-500/20">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 to-blue-300 bg-clip-text text-transparent">Icefield VIP Solution</h1>
+                        <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">Premium Predictor &middot; by ZETSU</p>
+                    </div>
+                </div>
+                <!-- Status Connected Badge -->
+                <div class="flex items-center gap-2 bg-sky-500/10 border border-sky-500/20 px-3.5 py-1.5 rounded-full">
+                    <span class="w-2.5 h-2.5 bg-sky-400 rounded-full animate-ping"></span>
+                    <span class="text-xs font-semibold text-sky-300">Donbet Connected API</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-8 justify-center items-start">
+            
+            <!-- Left Sidebar: Controls & Options -->
+            <section class="w-full lg:w-[380px] flex flex-col gap-6 shrink-0">
+                
+                <!-- NEW 100% WORK PREMIUM WIDGET -->
+                <div id="vipWidget" class="glass-panel rounded-2xl p-6 vip-gold-glow bg-gradient-to-br from-amber-500/10 via-slate-900 to-indigo-950/40 relative overflow-hidden transition-all duration-300">
+                    <div class="absolute top-0 right-0 bg-amber-500 text-slate-950 font-black text-[9px] uppercase px-3 py-1 rounded-bl-xl tracking-widest animate-pulse">
+                        VIP GOLD
+                    </div>
+                    
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-amber-400 mb-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.9L10 1.154l7.834 3.746a1 1 0 01.571.905V13a8 8 0 01-16 0V5.805a1 1 0 01.571-.904zM10 3.323L3.834 6.273c.42 2.373 1.5 5.584 6.166 7.424 4.666-1.84 5.746-5.05 6.166-7.424L10 3.323zM10 6a1 1 0 100 2 1 1 0 000-2zm0 4a1 1 0 00-1 1v2a1 1 0 102 0v-2a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        100% WORK Predictor
+                    </h3>
+                    
+                    <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+                        By-pass random seeds instantly. Unlocks server-side bypass patterns for guaranteed correct moves on 3x6, 4x9, and 5x15 grids.
+                    </p>
+
+                    <!-- NEW: GENERATE RANDOMIZ BUTTON -->
+                    <div class="mb-4">
+                        <button
+                            id="generateRandomizBtn"
+                            onclick="generateRandomizPath()"
+                            class="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-slate-950 font-black py-3 px-4 rounded-xl text-xs uppercase tracking-widest transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-[0.98]"
+                        >
+                            <span>🎲 Generate </span>
+                        </button>
+                        <p id="vipButtonHint" class="text-[10px] text-amber-500/75 mt-1.5 text-center font-bold">Requires VIP license key activation first.</p>
+                    </div>
+
+                    <div class="bg-black/40 p-3 rounded-xl border border-white/5 mb-4 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Status</span>
+                            <span id="vipStatusBadge" class="text-xs text-red-400 font-extrabold flex items-center gap-1.5 mt-0.5">
+                                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                LOCKED (Requires Payment)
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Price</span>
+                            <span class="text-sm text-amber-300 font-black tracking-tight">$200 USD</span>
+                        </div>
+                    </div>
+
+                    <button
+                        id="activationBtn"
+                        onclick="openPaymentModal()"
+                        class="w-full bg-gradient-to-r from-amber-500/20 to-yellow-600/20 hover:from-amber-500/30 hover:to-yellow-600/30 text-amber-300 border border-amber-500/30 font-black py-2.5 px-4 rounded-xl text-xs uppercase tracking-wider transition duration-200 flex items-center justify-center gap-2"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        View payment details ($200)
+                    </button>
+
+                    <div class="mt-4 pt-3 border-t border-white/5 flex gap-2">
+                        <input 
+                            type="text" 
+                            id="licenseKey" 
+                            placeholder="Enter VIP Key..." 
+                            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono"
+                        >
+                        <button 
+                            onclick="validateLicense()"
+                            class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs px-3 rounded-xl font-bold border border-slate-700 transition"
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Configuration Box -->
+                <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        Board Configuration
+                    </h3>
+                    
+                    <!-- Grid Dimensions -->
+                    <div class="grid grid-cols-2 gap-4 mb-5">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1.5 font-medium">Rows</label>
+                            <select id="rowSelect" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+                                <option value="3" selected>3 Rows (Standard)</option>
+                                <option value="4">4 Rows</option>
+                                <option value="5">5 Rows</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1.5 font-medium">Columns</label>
+                            <select id="colSelect" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+                                <option value="6" selected>6 Cols</option>
+                                <option value="9">9 Cols</option>
+                                <option value="12">12 Cols</option>
+                                <option value="15">15 Cols</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Input Visual Mode Toggle -->
+                    <div class="mb-5">
+                        <label class="block text-xs text-slate-400 mb-1.5 font-medium">Coordinate Definition</label>
+                        <div class="grid grid-cols-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                            <button id="modeMines" class="py-1.5 text-xs font-bold rounded-lg bg-red-500/20 text-red-300 border border-red-500/30 transition shadow-inner">
+                                ⚠️ Mines (Cracked)
+                            </button>
+                            <button id="modeSafe" class="py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition">
+                                🛡️ Safe Path (Smooth)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Coordinates Input -->
+                    <div class="mb-5">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label for="lossInput" class="text-xs text-slate-400 font-medium">Pattern Array</label>
+                            <button id="clearBtn" class="text-[11px] text-slate-500 hover:text-red-400 font-bold transition">Clear</button>
+                        </div>
+                        <input
+                            type="text"
+                            id="lossInput"
+                            class="w-full p-3 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 text-white placeholder-slate-500 text-sm font-mono tracking-wider"
+                            placeholder="e.g., 0,2,1,0,2,1"
+                        />
+                        <p class="text-[11px] text-slate-500 mt-1.5">Defines the highlighted row index (0 to Row-1) for each column.</p>
+                    </div>
+
+                    <!-- Primary Action Buttons -->
+                    <div class="flex flex-col gap-3">
+                        <button
+                            id="drawButton"
+                            class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg shadow-sky-500/20 transition duration-200 flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"></path></svg>
+                            Refresh & Render Path
+                        </button>
+                        <button
+                            id="copyButton"
+                            class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            Copy Configuration
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Presets Panel -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Donbet Fast Presets
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2" id="presetContainer">
+                        <!-- Dynamic Presets -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Interactive Visualizer & Live Status -->
+            <section class="flex-grow w-full flex flex-col gap-6">
+                
+                <!-- Toast Notifications / Warnings inside UI -->
+                <div id="statusAlert" class="hidden transition-all duration-300 flex items-start gap-3 p-4 rounded-xl border">
+                    <div id="alertIcon" class="mt-0.5"></div>
+                    <div class="flex-1">
+                        <h5 id="alertTitle" class="text-sm font-bold"></h5>
+                        <p id="alertDesc" class="text-xs text-slate-300 mt-0.5"></p>
+                    </div>
+                </div>
+
+                <!-- Visualization Board Frame -->
+                <div class="glass-panel rounded-2xl p-6 shadow-2xl relative overflow-hidden flex flex-col">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-white/5">
+                        <div>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                                Interactive Icefield Board
+                            </h2>
+                            <p id="interactiveStatusText" class="text-xs text-slate-400">Click on any ice block to switch paths instantly.</p>
+                        </div>
+                        <!-- Legend Indicators matching the exact image styles -->
+                        <div class="flex items-center gap-4 text-xs">
+                            <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                                <div class="w-5 h-5 rounded overflow-hidden">
+                                    <svg viewBox="0 0 120 120" class="w-full h-full"><g stroke="#1a3d54" stroke-width="5"><path d="M25 25 L45 55 L75 60 L100 45"/><path d="M45 55 L35 75 L15 85"/></g><rect width="120" height="120" fill="#00E5FF" opacity="0.3"/></svg>
+                                </div>
+                                <span class="text-slate-300 font-semibold">Cracked (Mine)</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                                <div class="w-5 h-5 rounded overflow-hidden">
+                                    <rect width="120" height="120" fill="#00E5FF"/>
+                                </div>
+                                <span class="text-slate-300 font-semibold">Smooth (Safe)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Dynamic Loss Data HUD matching image_38aa41.png verbatim -->
+                    <div class="mb-4">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">Loss Data Output</span>
+                        <div class="loss-data-hud p-4 px-6 text-xl sm:text-2xl font-bold text-slate-100 tracking-wider inline-block min-w-[200px]">
+                            <span id="lossDataHudValue">0,2,1,0,2,1</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Grid Wrapper stylized like the original dark canvas -->
+                    <div class="w-full overflow-x-auto pb-2">
+                        <div id="icefieldGrid" class="game-board-bg rounded-2xl p-4 grid gap-3 mx-auto min-w-[550px]">
+                            <!-- High Fidelity Ice Blocks Injected Here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Helper instructions -->
+                    <div class="mt-5 pt-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <span class="text-xs text-slate-400 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Tap on a tile to draw a direct line path.
+                        </span>
+                        <span id="activeGridSpec" class="text-xs font-mono text-slate-500 uppercase tracking-widest"></span>
+                    </div>
+                </div>
+
+                <!-- VIP Telegram & Community Options -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h4 class="text-base font-bold text-white">Join Our VIP Prediction Channel</h4>
+                        <p class="text-xs text-slate-400 mt-1">Get custom automated bot scripts, instant algorithms, and guaranteed safer steps.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-center items-center gap-3 w-full md:w-auto shrink-0">
+                        <a href="https://t.me/Donbetviip" target="_blank" class="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition duration-200 text-xs hover:scale-[1.03]">
+                            <img src="https://th.bing.com/th/id/OIP.lYN2s7Dv1a4pLAVUaXMCVgHaHa?rs=1&pid=ImgDetMain" alt="Telegram" class="w-5 h-5 rounded-full">
+                            <span>Telegram Channel</span>
+                        </a>
+                        <a href="https://www.instagram.com/Donbet_viip?igsh=MTNqNXA3cTc4cXFt&utm_source=qr" target="_blank" class="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition duration-200 text-xs hover:scale-[1.03]">
+                            <img src="https://clipart.info/images/ccovers/1516920567indigo-png-logo-transparent.png" alt="Instagram" class="w-5 h-5 rounded-full">
+                            <span>Instagram VIP</span>
+                        </a>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- PREVENTIVE CHECKOUT MODAL ($200 USDT / SKRILL PAYWALL) -->
+        <div id="paymentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden transition-all duration-300">
+            <div class="glass-panel max-w-md w-full rounded-3xl p-6 border border-amber-500/20 shadow-2xl relative">
+                <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+
+                <div class="text-center mb-6">
+                    <div class="mx-auto w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center border border-amber-500/30 mb-3">
+                        <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h4 class="text-lg font-bold text-slate-100">Unlock VIP "100% WORK" Predictor</h4>
+                    <p class="text-xs text-slate-400 mt-1">Get immediate authorization token for continuous accurate bypass steps.</p>
+                </div>
+
+                <!-- Tabs/Payment choices -->
+                <div class="bg-slate-950 p-1.5 rounded-xl border border-slate-800 grid grid-cols-2 gap-1 mb-5">
+                    <button onclick="switchTab('usdt')" id="tabUsdt" class="py-2 text-xs font-bold rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 shadow-inner">
+                        🟢 USDT (TRC-20)
+                    </button>
+                    <button onclick="switchTab('btc')" id="tabBtc" class="py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200">
+                        🟠 Bitcoin (BTC)
+                    </button>
+                </div>
+
+                <!-- Dynamic Tab content -->
+                <div id="usdtPayment" class="space-y-4">
+                    <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-widest block font-bold mb-1">Network address</span>
+                        <div class="flex items-center justify-between gap-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                            <span id="usdtAddr" class="text-xs text-emerald-400 font-mono select-all truncate">TY72jGxk9qWb3CszLpX47u1hW2mR3zP9aK</span>
+                            <button onclick="copyAddr('usdt')" class="text-slate-400 hover:text-white transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="btcPayment" class="space-y-4 hidden">
+                    <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-widest block font-bold mb-1">BTC Address</span>
+                        <div class="flex items-center justify-between gap-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800">
+                            <span id="btcAddr" class="text-xs text-amber-400 font-mono select-all truncate">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</span>
+                            <button onclick="copyAddr('btc')" class="text-slate-400 hover:text-white transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing / Action -->
+                <div class="mt-5 space-y-3">
+                    <div class="text-xs text-slate-400 text-center">
+                        Send exactly <strong class="text-white">$200 USD</strong>. Take a screenshot of your successful transaction, and click below to contact VIP support on Telegram to receive your Key.
+                    </div>
+                    
+                    <a href="https://t.me/Donbetviip" target="_blank" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-extrabold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                        <img src="https://th.bing.com/th/id/OIP.lYN2s7Dv1a4pLAVUaXMCVgHaHa?rs=1&pid=ImgDetMain" alt="Telegram Support" class="w-5 h-5 rounded-full">
+                        Contact VIP Support & Send Slip
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Partners -->
+        <footer class="glass-panel mt-12 py-6 px-4 border-t border-white/5">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-slate-500">
+                <div>
+                    <p>&copy; 2026 Icefield VIP Predictor Engine. Designed with official Donbet visual assets.</p>
+                    <p class="mt-1 text-[10px] text-slate-600">Referenced asset template verbatim from "{401162EB-9F0B-46C2-A730-97C47F2D4A65}.png".</p>
+                </div>
+                
+                <div class="flex flex-wrap items-center justify-center gap-5 grayscale opacity-60 hover:opacity-100 transition duration-300">
+                    <img src="https://www.liblogo.com/img-logo/bi1790bc70-binance-logo-binance-logo-png-and-vector-logo-download.png" alt="Binance" class="h-6 object-contain">
+                    <img src="https://th.bing.com/th/id/R.712a8255113f10fed9712c7ef48bfcc4?rik=oRrsR%2f4rOMYTeA&riu=http%3a%2f%2flogok.org%2fwp-content%2fuploads%2f2014%2f03%2fMasterCard-Logo.png&ehk=Bi6%2bChyZT%2fCZ%2fRHqL7mnHvWOkwpNA9rogqbZM%2ftYhh8%3d&risl=&pid=ImgRaw&r=0" alt="Mastercard" class="h-6 object-contain">
+                    <img src="https://fs.futbolyapuestasonline.com/wp-content/uploads/2019/02/logo-skrill-latinoamerica.png" alt="Skrill" class="h-6 object-contain">
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let config = {
+            rows: 3,
+            cols: 6,
+            mode: 'mines', // 'mines' (input points to cracked mines) or 'safe' (input points to smooth path)
+            path: [],      // Coordinates for highlighted elements (e.g. [0, 2, 1, 0, 2, 1])
+            vipUnlocked: false // Set to true when valid VIP key is entered
+        };
+
+        // Static VIP keys that you can distribute to clients
+        const VIP_KEYS = [
+            "MAKE-MONEY-100",
+            "Donbet-BYPASS-777",
+            "ICE-100-WORK-FREE"
+        ];
+
+        // Valid User login details
+        const SECURE_USER = "DONT";
+        const SECURE_PASS = "STOP";
+
+        // DOM elements
+        const loginGate = document.getElementById("loginGate");
+        const loaderScreen = document.getElementById("loaderScreen");
+        const appContainer = document.getElementById("appContainer");
+        const loginErrorMsg = document.getElementById("loginErrorMsg");
+        const loginErrorText = document.getElementById("loginErrorText");
+
+        const rowSelect = document.getElementById("rowSelect");
+        const colSelect = document.getElementById("colSelect");
+        const lossInput = document.getElementById("lossInput");
+        const drawButton = document.getElementById("drawButton");
+        const clearBtn = document.getElementById("clearBtn");
+        const copyButton = document.getElementById("copyButton");
+        const modeMines = document.getElementById("modeMines");
+        const modeSafe = document.getElementById("modeSafe");
+        const icefieldGrid = document.getElementById("icefieldGrid");
+        const statusAlert = document.getElementById("statusAlert");
+        const alertIcon = document.getElementById("alertIcon");
+        const alertTitle = document.getElementById("alertTitle");
+        const alertDesc = document.getElementById("alertDesc");
+        const activeGridSpec = document.getElementById("activeGridSpec");
+        const presetContainer = document.getElementById("presetContainer");
+        const lossDataHudValue = document.getElementById("lossDataHudValue");
+        const generateRandomizBtn = document.getElementById("generateRandomizBtn");
+        const vipButtonHint = document.getElementById("vipButtonHint");
+        const interactiveStatusText = document.getElementById("interactiveStatusText");
+
+        // --- Custom High Fidelity Vector Icons matching {401162EB-9F0B-46C2-A730-97C47F2D4A65}.png ---
+        
+        // 1. Smooth Blue Glassy Ice Cube
+        function getSmoothIceSVG() {
+            // If VIP is unlocked, show a stunning gold design for 100% bypass visibility
+            const gradStart = config.vipUnlocked ? "#FDE047" : "#E0F2FE";
+            const gradMid = config.vipUnlocked ? "#F59E0B" : "#7DD3FC";
+            const gradDark = config.vipUnlocked ? "#D97706" : "#0369A1";
+            const strokeColor = config.vipUnlocked ? "#FEF08A" : "#E0F2FE";
+            const shadowColor = config.vipUnlocked ? "rgba(245,158,11,0.5)" : "rgba(3,105,161,0.3)";
+
+            return `
+                <svg class="w-full h-full transition-all duration-300 drop-shadow-[0_4px_12px_${shadowColor}]" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="smoothIceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="${gradStart}"/>
+                            <stop offset="15%" stop-color="${gradMid}"/>
+                            <stop offset="50%" stop-color="${gradMid}"/>
+                            <stop offset="85%" stop-color="${gradDark}"/>
+                            <stop offset="100%" stop-color="${gradDark}"/>
+                        </linearGradient>
+                        <linearGradient id="sheen" x1="50%" y1="0%" x2="50%" y2="100%">
+                            <stop offset="0%" stop-color="white" stop-opacity="0.9"/>
+                            <stop offset="100%" stop-color="white" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Base 3D body -->
+                    <rect x="5" y="5" width="110" height="110" rx="26" fill="url(#smoothIceGradient)" stroke="${strokeColor}" stroke-width="4.5"/>
+                    <!-- Glass highlight sheen overlay -->
+                    <path d="M12 12 H108 C110 12 112 14 112 18 V36 C112 46 94 50 60 50 C26 50 8 46 8 36 V18 C8 14 10 12 12 12 Z" fill="url(#sheen)"/>
+                    <!-- Ambient Inner depth overlay -->
+                    <rect x="12" y="12" width="96" height="96" rx="18" stroke="${gradDark}" stroke-width="2" opacity="0.4"/>
+                    <!-- Soft bottom accent highlight -->
+                    <path d="M18 102 C 40 106, 80 106, 102 102" stroke="#F0F9FF" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+                    ${config.vipUnlocked ? `
+                    <!-- Premium Crown/Star Overlay for Unlocked States -->
+                    <g fill="#FFF" opacity="0.8">
+                        <circle cx="60" cy="80" r="3"/>
+                        <circle cx="35" cy="70" r="2"/>
+                        <circle cx="85" cy="70" r="2"/>
+                    </g>
+                    ` : ''}
+                </svg>
+            `;
+        }
+
+        // 2. Cracked Fractured Blue Ice Cube
+        function getCrackedIceSVG() {
+            return `
+                <svg class="w-full h-full transition-all duration-300 drop-shadow-[0_4px_10px_rgba(3,105,161,0.4)]" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="crackedIceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#E0F2FE"/>
+                            <stop offset="15%" stop-color="#7DD3FC"/>
+                            <stop offset="50%" stop-color="#38BDF8"/>
+                            <stop offset="85%" stop-color="#0284C7"/>
+                            <stop offset="100%" stop-color="#0369A1"/>
+                        </linearGradient>
+                        <linearGradient id="sheenCrack" x1="50%" y1="0%" x2="50%" y2="100%">
+                            <stop offset="0%" stop-color="white" stop-opacity="0.9"/>
+                            <stop offset="100%" stop-color="white" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- Base 3D body -->
+                    <rect x="5" y="5" width="110" height="110" rx="26" fill="url(#crackedIceGradient)" stroke="#E0F2FE" stroke-width="4.5"/>
+                    <!-- Glass highlight sheen overlay -->
+                    <path d="M12 12 H108 C110 12 112 14 112 18 V36 C112 46 94 50 60 50 C26 50 8 46 8 36 V18 C8 14 10 12 12 12 Z" fill="url(#sheenCrack)"/>
+                    
+                    <!-- Branching Crack Network matching exact crack overlay path verbatim -->
+                    <g stroke="#1e293b" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+                        <path d="M25 25 L45 55 L75 60 L102 45"/>
+                        <path d="M45 55 L35 75 L15 85"/>
+                        <path d="M35 75 L55 92 L85 96"/>
+                        <path d="M45 55 L62 35 L82 30"/>
+                        <path d="M75 60 L70 82"/>
+                        <path d="M55 92 L60 106"/>
+                        <path d="M35 75 L50 72"/>
+                        <path d="M62 35 L52 20"/>
+                    </g>
+                    <!-- White high-contrast glint highlights over the cracks for depth -->
+                    <g stroke="#f8fafc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.95">
+                        <path d="M26 26 L46 56 L76 61 L103 46"/>
+                        <path d="M46 56 L36 76 L16 86"/>
+                        <path d="M36 76 L56 93 L86 97"/>
+                        <path d="M46 56 L63 36 L83 31"/>
+                    </g>
+
+                    <!-- Ambient Inner depth overlay -->
+                    <rect x="12" y="12" width="96" height="96" rx="18" stroke="#0284C7" stroke-width="2" opacity="0.3"/>
+                    <!-- Soft bottom accent highlight -->
+                    <path d="M18 102 C 40 106, 80 106, 102 102" stroke="#F0F9FF" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+                </svg>
+            `;
+        }
+
+        // --- Core Functions ---
+
+        /**
+         * STREAMING_CHUNK:Handling Login authentication and validations...
+         */
+        function handleLoginSubmit() {
+            const user = document.getElementById("loginUser").value.trim();
+            const pass = document.getElementById("loginPass").value.trim();
+            const key = document.getElementById("loginLicense").value.trim();
+
+            // Validate basic inputs
+            if (!user || !pass || !key) {
+                loginErrorText.textContent = "Please fill in all security fields.";
+                loginErrorMsg.classList.remove("hidden");
+                return;
+            }
+
+            // Check details
+            if (user === SECURE_USER && pass === SECURE_PASS) {
+                if (VIP_KEYS.includes(key)) {
+                    loginErrorMsg.classList.add("hidden");
+                    runMainLoader(key);
+                } else {
+                    loginErrorText.textContent = "License Key is incorrect or expired.";
+                    loginErrorMsg.classList.remove("hidden");
+                }
+            } else {
+                loginErrorText.textContent = "Invalid username or password.";
+                loginErrorMsg.classList.remove("hidden");
+            }
+        }
+
+        /**
+         * STREAMING_CHUNK:Running simulated bypass console output...
+         */
+        function runMainLoader(validKey) {
+            // Hide login gate, reveal terminal loader
+            loginGate.classList.add("hidden");
+            loaderScreen.classList.remove("hidden");
+
+            const line1 = document.getElementById("logLine1");
+            const line2 = document.getElementById("logLine2");
+            const line3 = document.getElementById("logLine3");
+
+            // Simulation of deep connection sequence
+            setTimeout(() => {
+                line1.textContent = `> Success: Node secure handshakes complete.`;
+                line1.classList.remove("text-slate-500");
+                line1.classList.add("text-emerald-400");
+            }, 800);
+
+            setTimeout(() => {
+                line2.textContent = `> API Success: Donbet connected bypass payload verified.`;
+                line2.classList.remove("text-slate-500");
+                line2.classList.add("text-emerald-400");
+            }, 1800);
+
+            setTimeout(() => {
+                line3.textContent = `> Complete: 100% bypass pattern initialized successfully.`;
+                line3.classList.remove("text-slate-500");
+                line3.classList.add("text-emerald-400");
+            }, 2800);
+
+            // Turn on VIP state in system
+            setTimeout(() => {
+                // Initialize state
+                config.vipUnlocked = true;
+                document.getElementById("licenseKey").value = validKey;
+                validateLicense(true); // Bypass triggers immediately on successful authentication
+
+                // Load Dashboard
+                loaderScreen.classList.add("hidden");
+                appContainer.classList.remove("hidden");
+                setTimeout(() => {
+                    appContainer.classList.remove("opacity-0");
+                }, 50);
+
+                triggerNotification("Auth Active", "Welcome back ZETSU. Automated VIP Bypasser active.", "success");
+            }, 3500);
+        }
+
+        /**
+         * Notification triggers
+         */
+        function triggerNotification(title, message, variant = 'success') {
+            statusAlert.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/30', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-red-300', 'text-emerald-300', 'bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
+            
+            if (variant === 'error') {
+                statusAlert.classList.add('bg-red-500/10', 'border-red-500/30', 'text-red-300');
+                alertIcon.innerHTML = `
+                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `;
+            } else if (variant === 'warning') {
+                statusAlert.classList.add('bg-amber-500/10', 'border-amber-500/30', 'text-amber-300');
+                alertIcon.innerHTML = `
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                `;
+            } else {
+                statusAlert.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-300');
+                alertIcon.innerHTML = `
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `;
+            }
+
+            alertTitle.textContent = title;
+            alertDesc.textContent = message;
+        }
+
+        /**
+         * Modal Management Controls
+         */
+        function openPaymentModal() {
+            document.getElementById("paymentModal").classList.remove("hidden");
+        }
+
+        function closePaymentModal() {
+            document.getElementById("paymentModal").classList.add("hidden");
+        }
+
+        function switchTab(type) {
+            const tabUsdt = document.getElementById("tabUsdt");
+            const tabBtc = document.getElementById("tabBtc");
+            const usdtPayment = document.getElementById("usdtPayment");
+            const btcPayment = document.getElementById("btcPayment");
+
+            if (type === 'usdt') {
+                tabUsdt.className = "py-2 text-xs font-bold rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 shadow-inner";
+                tabBtc.className = "py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200";
+                usdtPayment.classList.remove("hidden");
+                btcPayment.classList.add("hidden");
+            } else {
+                tabBtc.className = "py-2 text-xs font-bold rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 shadow-inner";
+                tabUsdt.className = "py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200";
+                btcPayment.classList.remove("hidden");
+                usdtPayment.classList.add("hidden");
+            }
+        }
+
+        function copyAddr(type) {
+            const addr = type === 'usdt' ? "TY72jGxk9qWb3CszLpX47u1hW2mR3zP9aK" : "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
+            const tempEl = document.createElement("textarea");
+            tempEl.value = addr;
+            document.body.appendChild(tempEl);
+            tempEl.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempEl);
+            triggerNotification("Address Copied", "Payment address saved to clipboard successfully.", "success");
+        }
+
+        /**
+         * STREAMING_CHUNK:Validating user licenses and setting Gold styles...
+         */
+        function validateLicense(bypassLoaderMode = false) {
+            const keyInput = document.getElementById("licenseKey");
+            const key = keyInput.value.trim();
+            
+            if (!key && !bypassLoaderMode) {
+                triggerNotification("Empty Key", "Please enter your purchased VIP license key.", "error");
+                return;
+            }
+
+            // Check if entered key exists in our system array
+            if (VIP_KEYS.includes(key) || bypassLoaderMode) {
+                config.vipUnlocked = true;
+                
+                // Update UI elements to reflect premium state
+                const badge = document.getElementById("vipStatusBadge");
+                badge.className = "text-xs text-amber-400 font-extrabold flex items-center gap-1.5 mt-0.5 animate-pulse";
+                badge.innerHTML = `
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
+                    ACTIVE (100% BYPASS LIVE)
+                `;
+
+                // Update info hints
+                vipButtonHint.textContent = "🟢 VIP Active! Generate infinite working paths.";
+                vipButtonHint.className = "text-[10px] text-emerald-400 mt-1.5 text-center font-extrabold animate-pulse";
+                
+                // Set interactive board tip
+                interactiveStatusText.textContent = "🔒 VIP Bypass Mode Active: Ice block manual click disabled.";
+                interactiveStatusText.className = "text-xs font-bold text-amber-400 animate-pulse";
+
+                // Update the activation checkout button
+                const actBtn = document.getElementById("activationBtn");
+                actBtn.innerHTML = "🟢 VIP 100% BYPASS UNLOCKED";
+                actBtn.className = "w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black py-2.5 px-4 rounded-xl text-xs uppercase tracking-wider transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 pointer-events-none";
+                
+                // Make the widget layout glow gold
+                document.getElementById("vipWidget").className = "glass-panel rounded-2xl p-6 vip-gold-glow bg-gradient-to-br from-amber-500/30 via-slate-900 to-amber-950/20 relative overflow-hidden transition-all duration-300 border-2 border-amber-400";
+                
+                if (!bypassLoaderMode) {
+                    triggerNotification("VIP Key Accepted", "100% accurate Server-Side algorithm is now active! Safe paths are highlighted in GOLD.", "success");
+                }
+                
+                // Automatically generate a working path upon unlock
+                generateRandomizPath();
+            } else {
+                triggerNotification("Invalid VIP Key", "The key entered is inactive, expired, or invalid. Contact admin on Telegram to purchase.", "error");
+            }
+        }
+
+        /**
+         * NEW: Generates a completely randomized bypass path for active columns
+         */
+        function generateRandomizPath() {
+            if (!config.vipUnlocked) {
+                triggerNotification("VIP Locked", "You must unlock the 100% WORK Predictor or enter a VIP Key to generate automated bypasses.", "warning");
+                openPaymentModal();
+                return;
+            }
+
+            // Create random array path matching active cols and rows
+            let randomPath = [];
+            for (let i = 0; i < config.cols; i++) {
+                // Generate secure random row index between 0 and config.rows - 1
+                const randomIndex = Math.floor(Math.random() * config.rows);
+                randomPath.push(randomIndex);
+            }
+
+            // Update inputs & trigger rendering
+            lossInput.value = randomPath.join(",");
+            applyFormState();
+            
+            triggerNotification("Bypass Seed Generated", "New 100% safe path successfully applied to the Icefield.", "success");
+        }
+
+        /**
+         * Generate dynamic fast presets
+         */
+        function generatePresets() {
+            presetContainer.innerHTML = "";
+            const presets = [
+                { name: "Zigzag Steps", generator: (c, r) => Array.from({ length: c }, (_, i) => i % r) },
+                { name: "Bottom Lane", generator: (c, r) => Array.from({ length: c }, () => 0) },
+                { name: "Top Lane", generator: (c, r) => Array.from({ length: c }, () => r - 1) },
+                { name: "Random Steps", generator: (c, r) => Array.from({ length: c }, () => Math.floor(Math.random() * r)) }
+            ];
+
+            presets.forEach(p => {
+                const btn = document.createElement("button");
+                btn.className = "bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs py-2 px-2.5 rounded-xl transition font-bold text-center truncate";
+                btn.textContent = p.name;
+                btn.onclick = () => {
+                    // Prevent preset change if VIP is active to preserve security bypass simulation
+                    if (config.vipUnlocked) {
+                        triggerNotification("Bypass Active", "Use 'Generate Randomiz' button to construct random bypass paths in VIP Mode.", "warning");
+                        return;
+                    }
+                    const sample = p.generator(config.cols, config.rows);
+                    lossInput.value = sample.join(",");
+                    applyFormState();
+                    triggerNotification("Preset Loaded", `Applied automated pattern: "${p.name}"`);
+                };
+                presetContainer.appendChild(btn);
+            });
+        }
+
+        /**
+         * STREAMING_CHUNK:Rendering interactive SVG visual grids...
+         */
+        function renderInteractiveGrid() {
+            const r = config.rows;
+            const c = config.cols;
+
+            activeGridSpec.textContent = `${c}x${r} Icefield Grid`;
+
+            // Update the Loss Data text box exactly like image_38aa41.png
+            lossDataHudValue.textContent = config.path.join(",");
+
+            icefieldGrid.style.gridTemplateColumns = `repeat(${c}, minmax(0, 1fr))`;
+            icefieldGrid.innerHTML = "";
+
+            // Render Row-by-Row to match visual matrix representation
+            for (let rowIndex = 0; rowIndex < r; rowIndex++) {
+                for (let colIndex = 0; colIndex < c; colIndex++) {
+                    const cell = document.createElement("div");
+                    
+                    // Decide state: Check if this row is the mapped target index for this column
+                    const isTarget = config.path[colIndex] === rowIndex;
+
+                    // Grid cell layout - If VIP is active, disable click pointer events
+                    let clickableClasses = "cursor-pointer transform hover:scale-[1.04] active:scale-[0.96]";
+                    if (config.vipUnlocked) {
+                        clickableClasses = "cursor-not-allowed opacity-90";
+                    }
+
+                    cell.className = `relative h-28 aspect-square p-1.5 select-none transition-all duration-200 ${clickableClasses}`;
+
+                    // Apply the correct dynamic custom vector
+                    if (config.mode === 'mines') {
+                        // Mines Mode: Designated index is the cracked mine, other indexes are safe smooth ice blocks
+                        cell.innerHTML = isTarget ? getCrackedIceSVG() : getSmoothIceSVG();
+                    } else {
+                        // Safe Mode: Designated index is the safe smooth ice, other indexes are cracked mines
+                        cell.innerHTML = isTarget ? getSmoothIceSVG() : getCrackedIceSVG();
+                    }
+
+                    // Add an invisible index tag for debugging/accessibility
+                    const coordinateLabel = document.createElement("div");
+                    coordinateLabel.className = "absolute bottom-3 right-3 text-[9px] font-mono font-bold tracking-wider opacity-60 text-slate-800 pointer-events-none select-none";
+                    coordinateLabel.textContent = `R${rowIndex} C${colIndex}`;
+                    cell.appendChild(coordinateLabel);
+
+                    // Add interactive listener to change target coordinate (Only if VIP is not unlocked)
+                    cell.addEventListener("click", () => {
+                        if (config.vipUnlocked) {
+                            triggerNotification("Locked Mode", "Manual input is locked. Click 'Generate Randomiz' to generate automatic verified pathways.", "warning");
+                            return;
+                        }
+                        config.path[colIndex] = rowIndex;
+                        lossInput.value = config.path.join(",");
+                        renderInteractiveGrid();
+                    });
+
+                    icefieldGrid.appendChild(cell);
+                }
+            }
+        }
+
+        /**
+         * Parse text parameters and apply to system state
+         */
+        function applyFormState() {
+            config.rows = parseInt(rowSelect.value);
+            config.cols = parseInt(colSelect.value);
+
+            let rawVal = lossInput.value.trim();
+            if (!rawVal) {
+                config.path = Array.from({ length: config.cols }, (_, i) => i % config.rows);
+                lossInput.value = config.path.join(",");
+            } else {
+                let parsed = rawVal.split(",").map(item => {
+                    let num = parseInt(item);
+                    return isNaN(num) ? 0 : num;
+                });
+
+                if (parsed.length < config.cols) {
+                    while (parsed.length < config.cols) parsed.push(0);
+                } else if (parsed.length > config.cols) {
+                    parsed = parsed.slice(0, config.cols);
+                }
+
+                parsed = parsed.map(val => {
+                    if (val < 0) return 0;
+                    if (val >= config.rows) return config.rows - 1;
+                    return val;
+                });
+
+                config.path = parsed;
+                lossInput.value = config.path.join(",");
+            }
+
+            renderInteractiveGrid();
+        }
+
+        // --- Event Listeners ---
+
+        rowSelect.addEventListener("change", () => {
+            if (config.vipUnlocked) {
+                applyFormState();
+                generateRandomizPath();
+            } else {
+                applyFormState();
+                generatePresets();
+            }
+        });
+        colSelect.addEventListener("change", () => {
+            if (config.vipUnlocked) {
+                applyFormState();
+                generateRandomizPath();
+            } else {
+                applyFormState();
+                generatePresets();
+            }
+        });
+
+        // Mode Toggles (Danger vs Safe indicators)
+        modeMines.addEventListener("click", () => {
+            config.mode = 'mines';
+            modeMines.className = "py-1.5 text-xs font-bold rounded-lg bg-red-500/20 text-red-300 border border-red-500/30 transition shadow-inner";
+            modeSafe.className = "py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition";
+            renderInteractiveGrid();
+            triggerNotification("Visualizer Configuration", "Representing input array as Cracked Mine blocks.", 'success');
+        });
+
+        modeSafe.addEventListener("click", () => {
+            config.mode = 'safe';
+            modeSafe.className = "py-1.5 text-xs font-bold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition shadow-inner";
+            modeMines.className = "py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-200 transition";
+            renderInteractiveGrid();
+            triggerNotification("Visualizer Configuration", "Representing input array as Smooth Safe Path blocks.", 'success');
+        });
+
+        drawButton.addEventListener("click", () => {
+            if (config.vipUnlocked) {
+                generateRandomizPath();
+            } else {
+                applyFormState();
+                triggerNotification("System Synced", "Grid updated with selected array pattern successfully.", "success");
+            }
+        });
+
+        clearBtn.addEventListener("click", () => {
+            if (config.vipUnlocked) {
+                triggerNotification("Action Locked", "Cannot clear layout while 100% VIP bypass algorithm is active.", "warning");
+                return;
+            }
+            lossInput.value = "";
+            applyFormState();
+            triggerNotification("Cleared Grid", "Reset coordinates to standard template.", "success");
+        });
+
+        // Safe platform fallback copy tool
+        copyButton.addEventListener("click", () => {
+            try {
+                const tempEl = document.createElement("textarea");
+                tempEl.value = lossInput.value;
+                document.body.appendChild(tempEl);
+                tempEl.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempEl);
+                triggerNotification("Copied Successfully", `Pattern "${lossInput.value}" copied directly to clipboard.`);
+            } catch (err) {
+                triggerNotification("Action Failed", "Please highlight coordinates and copy manually.", "error");
+            }
+        });
+
+        // Add Enter Key listener for Login Inputs
+        const inputs = ["loginUser", "loginPass", "loginLicense"];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener("keypress", (e) => {
+                if (e.key === 'Enter') {
+                    handleLoginSubmit();
+                }
+            });
+        });
+
+        // Boot system parameters on load
+        window.addEventListener("DOMContentLoaded", () => {
+            const queryParams = new URLSearchParams(window.location.search);
+            const initialLosses = queryParams.get("losses");
+            
+            if (initialLosses) {
+                lossInput.value = initialLosses;
+            } else {
+                lossInput.value = "0,2,1,0,2,1"; 
+            }
+
+            applyFormState();
+            generatePresets();
+        });
+    </script>
+</body>
+</html>
