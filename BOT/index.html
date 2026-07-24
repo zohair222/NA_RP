@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chicken AI Strategy & Signal Predictor - iOS Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter and Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        iosBg: '#090a10',
+                        iosCard: 'rgba(22, 27, 38, 0.75)',
+                        iosBorder: 'rgba(255, 255, 255, 0.08)',
+                        chickenGold: '#FFB800',
+                        chickenGreen: '#10B981',
+                        chickenRed: '#EF4444',
+                        chickenAccent: '#6366F1'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Tajawal', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #050608;
+            color: #f3f4f6;
+            font-family: 'Inter', 'Tajawal', sans-serif;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .glass-panel {
+            background: rgba(20, 24, 36, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-button {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-button:active {
+            transform: scale(0.96);
+        }
+
+        .grid-tile {
+            perspective: 1000px;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0.8; }
+        }
+
+        .scanning-line {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #10B981, transparent);
+            box-shadow: 0 0 15px #10B981;
+            animation: scan 1.5s linear infinite;
+        }
+
+        .glow-win {
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+        }
+
+        .glow-loss {
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.35);
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.15);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-2 sm:p-4 bg-slate-950">
+
+    <!-- iPhone Viewport Wrapper -->
+    <div class="w-full max-w-[430px] h-[930px] max-h-[96vh] bg-iosBg rounded-[50px] border-[8px] border-[#222736] shadow-2xl relative overflow-hidden flex flex-col justify-between select-none">
+        
+        <!-- iOS Status Bar & Dynamic Island -->
+        <div class="w-full pt-3 px-7 flex items-center justify-between text-xs text-white/80 z-50 shrink-0">
+            <span id="iosClock" class="font-semibold tracking-tight text-sm">09:41</span>
+            
+            <!-- Dynamic Island -->
+            <div id="dynamicIsland" class="bg-black border border-white/10 h-7 w-[130px] rounded-full flex items-center justify-between px-3 text-[10px] text-emerald-400 font-mono shadow-inner transition-all duration-300">
+                <i class="fa-solid fa-robot animate-pulse"></i>
+                <span id="aiStatusText">AI PREDICT</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            </div>
+
+            <div class="flex items-center gap-1.5 text-xs">
+                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-full text-sm"></i>
+            </div>
+        </div>
+
+        <!-- App Header Bar -->
+        <div class="px-5 pt-3 pb-2 flex items-center justify-between border-b border-white/5 z-40 shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-drumstick-bite text-slate-950 text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold text-white tracking-wide leading-none flex items-center gap-1.5">
+                        CHICKEN AI PRO
+                        <span id="userBadge" class="hidden text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30 truncate max-w-[80px]"></span>
+                    </h1>
+                    <span id="headerSubtext" class="text-[10px] text-amber-400/90 font-medium tracking-wide">MyStake AI Predictor</span>
+                </div>
+            </div>
+
+            <!-- Settings Button -->
+            <button id="openSettingsBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/80 border border-white/10 transition">
+                <i class="fa-solid fa-sliders text-xs"></i>
+            </button>
+        </div>
+
+        <!-- Main Scrollable App Container -->
+        <div class="flex-1 overflow-y-auto px-4 py-2.5 space-y-2.5 relative z-30">
+            
+            <!-- Bankroll & Stats Bar -->
+            <div class="glass-panel rounded-2xl p-3 flex items-center justify-between gap-2 shadow-lg">
+                <div>
+                    <span class="text-[10px] text-gray-400 uppercase font-semibold tracking-wider block">Capital (رأس المال)</span>
+                    <div class="flex items-baseline gap-1 mt-0.5">
+                        <span class="text-xl font-black text-white" id="capitalDisplay">$100.00</span>
+                        <span class="text-[10px] text-gray-400">USD</span>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <span class="text-[10px] text-gray-400 uppercase font-semibold tracking-wider block">Profit / Loss</span>
+                    <span id="profitDisplay" class="text-sm font-extrabold text-emerald-400 mt-0.5 block">+$0.00</span>
+                </div>
+
+                <div class="h-8 w-[1px] bg-white/10 mx-1"></div>
+
+                <div class="text-right">
+                    <span class="text-[10px] text-gray-400 uppercase font-semibold tracking-wider block">Win Rate</span>
+                    <span id="winRateDisplay" class="text-sm font-bold text-amber-400 mt-0.5 block">100%</span>
+                </div>
+            </div>
+
+            <!-- AI Strategy Recommendation Banner -->
+            <div class="glass-panel rounded-2xl p-3 border-l-4 border-l-amber-400 relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-transparent to-transparent">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                <i class="fa-solid fa-bolt mr-1 text-[9px]"></i> AI STRATEGY SIGNAL
+                            </span>
+                            <span id="riskBadge" class="text-[10px] text-gray-300 font-medium">Risk: Low</span>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2.5">
+                            <div>
+                                <span class="text-[9px] text-gray-400 block">Next Bet (الميز)</span>
+                                <span id="recBetDisplay" class="text-lg font-black text-amber-400">$2.00</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-gray-400 block">Bones (العظام)</span>
+                                <span id="recBonesDisplay" class="text-xs font-bold text-white"><i class="fa-solid fa-bone text-[10px] text-amber-200/80 mr-1"></i>3 Bones</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-gray-400 block">Target Safe Clicks</span>
+                                <span id="recTargetDisplay" class="text-xs font-extrabold text-emerald-400">4 Discs (1.85x)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="reanalyzeBtn" class="px-2 py-1 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-xs font-semibold text-white flex items-center gap-1 active:scale-95 transition">
+                        <i class="fa-solid fa-rotate text-[10px]"></i> AI
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5x5 Prediction Grid Matrix -->
+            <div class="glass-panel rounded-3xl p-2.5 relative overflow-hidden">
+                <div class="flex items-center justify-between mb-2 px-1">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-crosshairs text-amber-400 text-xs"></i>
+                        <span class="text-xs font-bold text-gray-200">SIGNAL MAP (<span id="targetCountLabel" class="text-emerald-400 font-black">4</span> CHICKENS)</span>
+                    </div>
+                    <span id="confidenceScore" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        Accuracy: 96.2%
+                    </span>
+                </div>
+
+                <!-- Scanning Overlay -->
+                <div id="scanningOverlay" class="hidden absolute inset-0 bg-black/70 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-2 rounded-3xl transition-all">
+                    <div class="scanning-line"></div>
+                    <div class="w-9 h-9 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin flex items-center justify-center">
+                        <i class="fa-solid fa-brain text-emerald-400 text-xs"></i>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-300 font-mono animate-pulse">ANALYZING MYSTAKE SEED...</span>
+                </div>
+
+                <!-- 5x5 Grid -->
+                <div class="grid grid-cols-5 gap-1.5 relative z-10" id="chickenGrid">
+                    <!-- Javascript renders 25 tiles dynamically -->
+                </div>
+
+                <!-- Legend Indicator -->
+                <div class="mt-2 pt-2 border-t border-white/5 flex items-center justify-around text-[9px] text-gray-400">
+                    <div class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
+                        <span>High Safe Pick</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-amber-500/60"></span>
+                        <span>Secondary Option</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-red-500/40"></span>
+                        <span>High Risk</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRIMARY ACTION BUTTONS (Win / Loss Buttons) -->
+            <div class="space-y-1.5">
+                <div class="text-center text-[10px] font-semibold text-gray-400 tracking-wider uppercase">
+                    أدخل نتيجة الميز الأخيرة (Enter Round Result)
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <!-- WIN BUTTON (Rba7t) -->
+                    <button id="btnWin" class="glass-button relative group overflow-hidden py-3 px-2 rounded-2xl bg-gradient-to-b from-emerald-500/90 to-emerald-700/90 border border-emerald-400/40 text-white font-black shadow-lg shadow-emerald-900/40 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
+                        <div class="flex items-center gap-1.5 text-base">
+                            <i class="fa-solid fa-circle-check text-emerald-200"></i>
+                            <span class="tracking-wide">رَبَحْتْ (WIN)</span>
+                        </div>
+                        <span class="text-[9px] text-emerald-100/80 font-normal">Win + Reset Bet</span>
+                    </button>
+
+                    <!-- LOSS BUTTON (Khsart) -->
+                    <button id="btnLoss" class="glass-button relative group overflow-hidden py-3 px-2 rounded-2xl bg-gradient-to-b from-red-500/90 to-red-700/90 border border-red-400/40 text-white font-black shadow-lg shadow-red-900/40 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
+                        <div class="flex items-center gap-1.5 text-base">
+                            <i class="fa-solid fa-circle-xmark text-red-200"></i>
+                            <span class="tracking-wide">خْسَرْتْ (LOSS)</span>
+                        </div>
+                        <span id="lossBtnSubtext" class="text-[9px] text-red-100/80 font-normal">Recovery Bet ($2 -> $6)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Session Strategy Log -->
+            <div class="glass-panel rounded-2xl p-2.5">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-xs font-bold text-gray-300 flex items-center gap-1">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-400 text-xs"></i>
+                        سجل التوصيات (Session History)
+                    </span>
+                    <button id="clearLogBtn" class="text-[10px] text-gray-400 hover:text-white transition">Clear</button>
+                </div>
+
+                <div id="logContainer" class="max-h-24 overflow-y-auto space-y-1 pr-1 text-[10px]">
+                    <div class="text-center py-2 text-gray-500 italic">
+                        App Ready. Press WIN or LOSS after each round to generate strategies.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- iOS Bottom Navigation Bar -->
+        <div class="px-6 py-2 border-t border-white/5 glass-panel flex items-center justify-between z-40 shrink-0">
+            <button id="navDashboardBtn" class="flex flex-col items-center gap-0.5 text-amber-400 text-[9px] font-medium">
+                <i class="fa-solid fa-grip text-base"></i>
+                <span>Predictor</span>
+            </button>
+            <button id="navCalculatorBtn" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-white text-[9px] font-medium transition">
+                <i class="fa-solid fa-calculator text-base"></i>
+                <span>Calculator</span>
+            </button>
+            <button id="navHistoryBtn" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-white text-[9px] font-medium transition">
+                <i class="fa-solid fa-chart-line text-base"></i>
+                <span>Analytics</span>
+            </button>
+            <button id="navRulesBtn" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-white text-[9px] font-medium transition">
+                <i class="fa-solid fa-circle-info text-base"></i>
+                <span>Guide</span>
+            </button>
+        </div>
+
+        <!-- Home Indicator Notch -->
+        <div class="w-full pb-2 flex justify-center shrink-0">
+            <div class="w-32 h-1 bg-white/20 rounded-full"></div>
+        </div>
+
+        <!-- MYSTAKE ONBOARDING / LOGIN MODAL -->
+        <div id="loginModal" class="absolute inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex flex-col justify-between p-6 transition-all duration-300">
+            <div class="text-center pt-6 space-y-3">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 flex items-center justify-center shadow-xl shadow-amber-500/30 animate-bounce">
+                    <i class="fa-solid fa-drumstick-bite text-slate-950 text-3xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-white tracking-wide">MYSTAKE AI PREDICTOR</h2>
+                    <p class="text-xs text-amber-400 font-medium mt-1">ربط الحساب وتحليل الميز (Account Sync & Capital)</p>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-5 space-y-4 border border-white/10">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-gray-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user text-amber-400 text-xs"></i>
+                        اسم المستخدم في MyStake (Username)
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="inputUsername" placeholder="مثال: nimo_bet" class="w-full bg-black/60 border border-white/15 rounded-xl px-3.5 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-amber-400 pl-8">
+                        <i class="fa-solid fa-at absolute left-3 top-3.5 text-xs text-gray-400"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-gray-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-wallet text-emerald-400 text-xs"></i>
+                        رأس المال الحالي ($) (Starting Capital)
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="inputBankroll" placeholder="100.00" value="100" min="1" step="0.01" class="w-full bg-black/60 border border-white/15 rounded-xl px-3.5 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-emerald-400 pl-8">
+                        <i class="fa-solid fa-dollar-sign absolute left-3 top-3.5 text-xs text-gray-400"></i>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-200/90 leading-relaxed">
+                    <i class="fa-solid fa-shield-halved text-amber-400 mr-1"></i>
+                    <strong>حماية رأس المال من الخسارة:</strong> التطبيق يقوم بحساب نسبة الميز الآمنة تلقائياً بناءً على رصيدك لحمايتك من الخسارات المتتالية.
+                </div>
+
+                <button id="startSyncBtn" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-amber-500/25 active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-link text-xs"></i>
+                    <span>تأكيد وربط الحساب (Start Sync)</span>
+                </button>
+            </div>
+
+            <!-- Footer indicator -->
+            <div class="text-center text-[10px] text-gray-500 font-mono">
+                MyStake Hash Seed Protocol • v3.5 SAFE AI
+            </div>
+        </div>
+
+        <!-- SETTINGS MODAL OVERLAY -->
+        <div id="settingsModal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end transition-all duration-300">
+            <div class="glass-panel bg-slate-900 border-t border-white/10 rounded-t-[35px] p-5 space-y-3.5 max-h-[85%] overflow-y-auto">
+                <div class="flex items-center justify-between pb-2 border-b border-white/10">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-amber-400"></i>
+                        إعدادات الاستراتيجية (Settings)
+                    </h2>
+                    <button id="closeSettingsBtn" class="w-8 h-8 rounded-full bg-white/10 text-gray-300 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Username in Settings -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-300 block">MyStake Username</label>
+                    <input type="text" id="settingUsername" value="" class="w-full bg-black/50 border border-white/15 rounded-xl px-3 py-1.5 text-white font-mono text-sm focus:outline-none focus:border-amber-400">
+                </div>
+
+                <!-- Initial Capital -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-300 block">Initial Bankroll / رأس المال ($)</label>
+                    <input type="number" id="settingBankroll" value="100" min="1" class="w-full bg-black/50 border border-white/15 rounded-xl px-3 py-1.5 text-white font-mono text-sm focus:outline-none focus:border-amber-400">
+                </div>
+
+                <!-- Base Bet Amount -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-300 block">Base Bet Amount / الميز الاصلي ($)</label>
+                    <input type="number" id="settingBaseBet" value="2.00" step="0.5" min="0.1" class="w-full bg-black/50 border border-white/15 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-amber-400">
+                </div>
+
+                <!-- Bones Selector -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-300 block">Chicken Bones Count (عدد العظام)</label>
+                    <div class="grid grid-cols-5 gap-1.5">
+                        <button class="bone-select-btn py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-xs font-bold" data-bones="1">1</button>
+                        <button class="bone-select-btn py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-xs font-bold" data-bones="2">2</button>
+                        <button class="bone-select-btn py-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-bold active" data-bones="3">3</button>
+                        <button class="bone-select-btn py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-xs font-bold" data-bones="4">4</button>
+                        <button class="bone-select-btn py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-xs font-bold" data-bones="5">5</button>
+                    </div>
+                </div>
+
+                <!-- Target Discs Limit Config -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-300 block">Max Target Safe Discs Range (عدد الديسكات)</label>
+                    <select id="settingMaxTarget" class="w-full bg-black/50 border border-white/15 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400">
+                        <option value="7" selected>Dynamic (1 up to 7 Safe Clicks - Max 7)</option>
+                        <option value="5">Moderate (1 up to 5 Safe Clicks)</option>
+                        <option value="3">Conservative (1 up to 3 Safe Clicks)</option>
+                    </select>
+                </div>
+
+                <!-- Recovery Factor Mode -->
+                <div class="space-y-1">
+                    <label class="text-xs font-semibold text-gray-300 block">Loss Recovery Step / زيادة الميز عند الخسارة</label>
+                    <select id="settingRecoveryFactor" class="w-full bg-black/50 border border-white/15 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-400">
+                        <option value="3.0" selected>Aggressive Step (3x multiplier: $2 -> $6)</option>
+                        <option value="2.0">Standard Double (2x multiplier: $2 -> $4)</option>
+                        <option value="1.5">Mild Safe Step (1.5x multiplier: $2 -> $3)</option>
+                    </select>
+                </div>
+
+                <button id="saveSettingsBtn" class="w-full py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-lg transition active:scale-95 mt-2">
+                    حفظ التغييرات (Apply & Reset)
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // App State Management
+        const state = {
+            username: '',
+            bankroll: 100.00,
+            initialBankroll: 100.00,
+            baseBet: 2.00,
+            currentBet: 2.00,
+            bones: 3,
+            maxTargetLimit: 7,
+            recoveryFactor: 3.0,
+            currentTargetClicks: 4,
+            totalWins: 0,
+            totalLosses: 0,
+            consecutiveLosses: 0,
+            recommendedIndices: []
+        };
+
+        // Real Multiplier calculation for MyStake Chicken Mini-Game (25 tiles total)
+        function getMultiplier(bones, picks) {
+            let mult = 1.0;
+            let safeTiles = 25 - bones;
+            let currentTotal = 25;
+            for (let i = 0; i < picks; i++) {
+                mult *= (currentTotal / safeTiles);
+                currentTotal--;
+                safeTiles--;
+            }
+            return parseFloat((mult * 0.99).toFixed(2));
+        }
+
+        // Web Audio API Effects
+        const playAudioEffect = (type) => {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'win') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                } else if (type === 'loss') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.4);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.4);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.05);
+                }
+            } catch(e) {
+                console.log("Audio muted");
+            }
+        };
+
+        // DOM Elements
+        const clockEl = document.getElementById('iosClock');
+        const capitalDisplay = document.getElementById('capitalDisplay');
+        const profitDisplay = document.getElementById('profitDisplay');
+        const winRateDisplay = document.getElementById('winRateDisplay');
+        const recBetDisplay = document.getElementById('recBetDisplay');
+        const recBonesDisplay = document.getElementById('recBonesDisplay');
+        const recTargetDisplay = document.getElementById('recTargetDisplay');
+        const riskBadge = document.getElementById('riskBadge');
+        const gridContainer = document.getElementById('chickenGrid');
+        const targetCountLabel = document.getElementById('targetCountLabel');
+        const scanningOverlay = document.getElementById('scanningOverlay');
+        const logContainer = document.getElementById('logContainer');
+        const confidenceScore = document.getElementById('confidenceScore');
+        const lossBtnSubtext = document.getElementById('lossBtnSubtext');
+        const userBadge = document.getElementById('userBadge');
+
+        // Onboarding & Settings DOM Elements
+        const loginModal = document.getElementById('loginModal');
+        const inputUsername = document.getElementById('inputUsername');
+        const inputBankroll = document.getElementById('inputBankroll');
+        const startSyncBtn = document.getElementById('startSyncBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const settingUsername = document.getElementById('settingUsername');
+        const settingBankroll = document.getElementById('settingBankroll');
+        const settingBaseBet = document.getElementById('settingBaseBet');
+        const settingMaxTarget = document.getElementById('settingMaxTarget');
+        const settingRecoveryFactor = document.getElementById('settingRecoveryFactor');
+
+        // Clock Update
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            clockEl.textContent = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Calculate Strategy Displays & Update UI
+        function updateStrategyDisplays() {
+            capitalDisplay.textContent = `$${state.bankroll.toFixed(2)}`;
+            const profit = state.bankroll - state.initialBankroll;
+            profitDisplay.textContent = `${profit >= 0 ? '+' : ''}$${profit.toFixed(2)}`;
+            profitDisplay.className = `text-sm font-extrabold mt-0.5 block ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+
+            const totalGames = state.totalWins + state.totalLosses;
+            const rate = totalGames > 0 ? Math.round((state.totalWins / totalGames) * 100) : 100;
+            winRateDisplay.textContent = `${rate}%`;
+
+            recBetDisplay.textContent = `$${state.currentBet.toFixed(2)}`;
+            recBonesDisplay.innerHTML = `<i class="fa-solid fa-bone text-[10px] text-amber-200/80 mr-1"></i>${state.bones} Bones`;
+
+            const approxMult = getMultiplier(state.bones, state.currentTargetClicks);
+            recTargetDisplay.textContent = `${state.currentTargetClicks} Discs (${approxMult}x)`;
+
+            // Loss button recovery preview text
+            const nextRecoveryBet = Math.min(state.bankroll, state.currentBet * state.recoveryFactor).toFixed(2);
+            lossBtnSubtext.textContent = `Recovery Bet ($${state.currentBet.toFixed(2)} -> $${nextRecoveryBet})`;
+
+            // Smart Risk Warning System
+            if (state.bankroll <= state.initialBankroll * 0.4) {
+                riskBadge.textContent = "CRITICAL STOP-LOSS! Reduce Bet!";
+                riskBadge.className = "text-[10px] text-red-400 font-bold animate-pulse";
+            } else if (state.consecutiveLosses === 0) {
+                riskBadge.textContent = "Risk: Safe (Low)";
+                riskBadge.className = "text-[10px] text-emerald-300 font-medium";
+            } else if (state.consecutiveLosses <= 2) {
+                riskBadge.textContent = "Risk: Recovery Step";
+                riskBadge.className = "text-[10px] text-amber-300 font-medium";
+            } else {
+                riskBadge.textContent = "Risk: High Recovery";
+                riskBadge.className = "text-[10px] text-red-300 font-medium animate-pulse";
+            }
+        }
+
+        // Render 5x5 Grid matrix
+        function renderGrid() {
+            gridContainer.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const isRecommended = state.recommendedIndices.includes(i);
+                const tile = document.createElement('div');
+                tile.className = `h-11 rounded-xl flex items-center justify-center font-bold text-xs relative transition-all duration-300 cursor-pointer ${
+                    isRecommended 
+                        ? 'bg-gradient-to-tr from-emerald-600 to-emerald-400 text-white shadow-md shadow-emerald-500/30 scale-95 border border-emerald-300/50' 
+                        : 'bg-white/5 border border-white/10 text-gray-500 hover:bg-white/10'
+                }`;
+
+                if (isRecommended) {
+                    const orderIndex = state.recommendedIndices.indexOf(i) + 1;
+                    tile.innerHTML = `
+                        <div class="flex flex-col items-center">
+                            <i class="fa-solid fa-drumstick-bite text-xs text-amber-200"></i>
+                            <span class="text-[9px] font-mono font-black mt-0.5">${orderIndex}</span>
+                        </div>
+                    `;
+                } else {
+                    tile.innerHTML = `<span class="text-[10px] opacity-20 font-mono">${i + 1}</span>`;
+                }
+                gridContainer.appendChild(tile);
+            }
+            targetCountLabel.textContent = state.currentTargetClicks;
+        }
+
+        // AI Signal Analysis Routine
+        function runAIAnalysis(callback) {
+            scanningOverlay.classList.remove('hidden');
+            
+            setTimeout(() => {
+                // Dynamically assign 3 to maxTargetLimit safe clicks based on bones count
+                let safeRange = Math.min(state.maxTargetLimit, Math.max(2, 8 - state.bones));
+                state.currentTargetClicks = Math.floor(Math.random() * (safeRange - 2)) + 3;
+
+                // Pick non-repeating random indices for heatmap targets
+                const indices = [];
+                while (indices.length < state.currentTargetClicks) {
+                    const rand = Math.floor(Math.random() * 25);
+                    if (!indices.includes(rand)) indices.push(rand);
+                }
+                state.recommendedIndices = indices;
+
+                // Accuracy variance simulation
+                const accuracy = (94.5 + Math.random() * 4.5).toFixed(1);
+                confidenceScore.textContent = `Accuracy: ${accuracy}%`;
+
+                renderGrid();
+                updateStrategyDisplays();
+                scanningOverlay.classList.add('hidden');
+
+                if (typeof callback === 'function') callback();
+            }, 500);
+        }
+
+        // Login / Account Sync Handler
+        startSyncBtn.addEventListener('click', () => {
+            const user = inputUsername.value.trim() || 'my_player';
+            const bank = parseFloat(inputBankroll.value) || 100.00;
+
+            state.username = user;
+            state.bankroll = bank;
+            state.initialBankroll = bank;
+            
+            // Safe initial base bet (~2% of capital)
+            state.baseBet = Math.max(0.5, parseFloat((bank * 0.02).toFixed(2)));
+            state.currentBet = state.baseBet;
+
+            playAudioEffect('win');
+
+            loginModal.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                loginModal.classList.add('hidden');
+            }, 300);
+
+            userBadge.textContent = `@${user}`;
+            userBadge.classList.remove('hidden');
+
+            runAIAnalysis();
+        });
+
+        // Win Button Click Handler (Rba7t)
+        document.getElementById('btnWin').addEventListener('click', () => {
+            playAudioEffect('win');
+            
+            const mult = getMultiplier(state.bones, state.currentTargetClicks);
+            const winProfit = state.currentBet * (mult - 1);
+            state.bankroll += winProfit;
+            state.totalWins++;
+            state.consecutiveLosses = 0;
+
+            // Log win
+            addLogEntry(`WON +$${winProfit.toFixed(2)} (${mult}x @ $${state.currentBet.toFixed(2)})`, 'win');
+
+            // Reset bet to base on win
+            state.currentBet = state.baseBet;
+
+            runAIAnalysis();
+        });
+
+        // Loss Button Click Handler (Khsart)
+        document.getElementById('btnLoss').addEventListener('click', () => {
+            playAudioEffect('loss');
+
+            state.bankroll -= state.currentBet;
+            state.totalLosses++;
+            state.consecutiveLosses++;
+
+            // Log loss
+            addLogEntry(`LOST -$${state.currentBet.toFixed(2)} (${state.bones} Bones)`, 'loss');
+
+            // Apply Martingale / Recovery multiplier
+            const nextBet = Math.min(state.bankroll, state.currentBet * state.recoveryFactor);
+            state.currentBet = Math.max(0.2, parseFloat(nextBet.toFixed(2)));
+
+            runAIAnalysis();
+        });
+
+        // Helper to add history logs
+        function addLogEntry(msg, type) {
+            const entry = document.createElement('div');
+            entry.className = `flex items-center justify-between p-1.5 rounded-lg text-[10px] font-mono ${
+                type === 'win' ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-red-500/10 text-red-300 border border-red-500/20'
+            }`;
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            entry.innerHTML = `<span>[${time}] ${msg}</span> <i class="fa-solid ${type === 'win' ? 'fa-check text-emerald-400' : 'fa-xmark text-red-400'}"></i>`;
+            
+            if (logContainer.children[0] && logContainer.children[0].classList.contains('italic')) {
+                logContainer.innerHTML = '';
+            }
+            logContainer.prepend(entry);
+        }
+
+        // Re-analyze Button Handler
+        document.getElementById('reanalyzeBtn').addEventListener('click', () => {
+            playAudioEffect('click');
+            runAIAnalysis();
+        });
+
+        // Bone selector buttons handler
+        document.querySelectorAll('.bone-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                playAudioEffect('click');
+                document.querySelectorAll('.bone-select-btn').forEach(b => {
+                    b.className = 'bone-select-btn py-2 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-xs font-bold';
+                });
+                btn.className = 'bone-select-btn py-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-bold active';
+                state.bones = parseInt(btn.dataset.bones);
+                runAIAnalysis();
+            });
+        });
+
+        // Settings Modal Handlers
+        openSettingsBtn.addEventListener('click', () => {
+            playAudioEffect('click');
+            settingUsername.value = state.username;
+            settingBankroll.value = state.bankroll.toFixed(2);
+            settingBaseBet.value = state.baseBet.toFixed(2);
+            settingMaxTarget.value = state.maxTargetLimit;
+            settingRecoveryFactor.value = state.recoveryFactor;
+            settingsModal.classList.remove('hidden');
+        });
+
+        closeSettingsBtn.addEventListener('click', () => {
+            playAudioEffect('click');
+            settingsModal.classList.add('hidden');
+        });
+
+        saveSettingsBtn.addEventListener('click', () => {
+            playAudioEffect('click');
+            const newUsername = settingUsername.value.trim() || state.username || 'my_player';
+            const newBankroll = parseFloat(settingBankroll.value) || 100;
+            const newBaseBet = parseFloat(settingBaseBet.value) || 2;
+
+            state.username = newUsername;
+            userBadge.textContent = `@${newUsername}`;
+            userBadge.classList.remove('hidden');
+
+            state.bankroll = newBankroll;
+            state.initialBankroll = newBankroll;
+            state.baseBet = newBaseBet;
+            state.currentBet = newBaseBet;
+            state.maxTargetLimit = parseInt(settingMaxTarget.value);
+            state.recoveryFactor = parseFloat(settingRecoveryFactor.value);
+            state.consecutiveLosses = 0;
+
+            settingsModal.classList.add('hidden');
+            runAIAnalysis();
+        });
+
+        // Clear Log
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            playAudioEffect('click');
+            logContainer.innerHTML = `
+                <div class="text-center py-2 text-gray-500 italic">
+                    Log cleared. Ready for next session.
+                </div>
+            `;
+        });
+
+        // Nav tabs toggle visual feedback
+        const navButtons = [
+            document.getElementById('navDashboardBtn'),
+            document.getElementById('navCalculatorBtn'),
+            document.getElementById('navHistoryBtn'),
+            document.getElementById('navRulesBtn')
+        ];
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                playAudioEffect('click');
+                navButtons.forEach(b => b.className = 'flex flex-col items-center gap-0.5 text-gray-400 hover:text-white text-[9px] font-medium transition');
+                btn.className = 'flex flex-col items-center gap-0.5 text-amber-400 text-[9px] font-medium';
+            });
+        });
+
+        // Window load initialisation
+        window.addEventListener('load', () => {
+            runAIAnalysis();
+        });
+    </script>
+</body>
+</html>
