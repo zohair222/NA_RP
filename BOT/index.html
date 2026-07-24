@@ -7,10 +7,14 @@
     
     <!-- iOS Native PWA / Fullscreen Capabilities -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Chicken AI">
+    <meta name="apple-mobile-web-app-title" content="Chicken AI Pro">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#090a10">
+
+    <!-- Embedded Web App Manifest for iOS/Android Standalone Display -->
+    <link rel="manifest" href="data:application/manifest+json;utf8,%7B%22name%22%3A%22Chicken%20AI%20Pro%22%2C%22short_name%22%3A%22ChickenAI%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23090a10%22%2C%22theme_color%22%3A%22%23090a10%22%7D">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -49,6 +53,8 @@
             overflow-x: hidden;
             user-select: none;
             -webkit-user-select: none;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .glass-panel {
@@ -855,6 +861,16 @@
 
         // Window load initialisation
         window.addEventListener('load', () => {
+            // Prevent links from opening in browser view inside standalone iOS app
+            if (window.navigator.standalone === true) {
+                document.addEventListener('click', function(e) {
+                    const target = e.target.closest('a');
+                    if (target && target.href) {
+                        e.preventDefault();
+                        window.location.href = target.href;
+                    }
+                }, false);
+            }
             runAIAnalysis();
         });
     </script>
